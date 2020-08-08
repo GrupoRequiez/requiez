@@ -2,6 +2,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 import logging
+from datetime import timedelta
 from odoo import fields, models, api, exceptions, _
 _logger = logging.getLogger(__name__)
 
@@ -54,9 +55,11 @@ class SaleOrder(models.Model):
         super(SaleOrder, self).action_confirm()
 
     @api.multi
-    @api.onchange('commitment_date')
+    @api.onchange('expected_date')
     def onchange_partner_shipping_id(self):
-        self.date_promised = self.commitment_date
+        # self.date_promised = self.commitment_date
+        self.date_promised = self.expected_date
+        self.commitment_date = self.expected_date
         return {}
 
 

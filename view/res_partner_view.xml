@@ -26,12 +26,14 @@
     <field name="model">res.partner</field>
     <field name="inherit_id" ref="account.view_partner_property_form"/>
     <field name="arch" type="xml">
-      <group name="acc_sale" position="inside">
-        <field name="credit_limit" attrs="{'invisible': [('credit_ignore', '=', True)]}"/>
-        <field name="credit_ignore"/>
-        <field name="grace_days" attrs="{'invisible': [('expired_ignore', '=', True)]}"/>
-        <field name="expired_ignore"/>
-        <field name="sale_order_ignore"/>
+      <group name="banks" position="before">
+        <group name="credit_control" string="credit control">
+          <field name="credit_limit" attrs="{'invisible': [('credit_ignore', '=', True)]}"/>
+          <field name="credit_ignore"/>
+          <field name="grace_days" attrs="{'invisible': [('expired_ignore', '=', True)]}"/>
+          <field name="expired_ignore"/>
+          <field name="sale_order_ignore"/>
+        </group>
       </group>
     </field>
   </record>
@@ -44,9 +46,6 @@
     <field name="groups_id" eval="[(6, 0, [ref('base.group_user') ])]"/>
     <field name="arch" type="xml">
       <field name="property_payment_term_id" position="attributes">
-        <attribute name="readonly">1</attribute>
-      </field>
-      <field name="trust" position="attributes">
         <attribute name="readonly">1</attribute>
       </field>
       <field name="credit_limit" position="attributes">
@@ -74,9 +73,6 @@
     <field name="groups_id" eval="[(6, 0, [ref('requiez.account_control_group') ])]"/>
     <field name="arch" type="xml">
       <field name="property_payment_term_id" position="attributes">
-        <attribute name="readonly">0</attribute>
-      </field>
-      <field name="trust" position="attributes">
         <attribute name="readonly">0</attribute>
       </field>
       <field name="credit_limit" position="attributes">

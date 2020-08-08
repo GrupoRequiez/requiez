@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="report_invoice_document_requiez" inherit_id="account.report_invoice_document">
-        <xpath expr="//tr/td/span[@t-field='l.price_unit']" position="replace">
-            <span t-if="o.type == 'in_invoice'" t-esc="'%.4f' % l.price_unit"/>
-            <span t-if="o.type != 'in_invoice'" t-field="l.price_unit"/>
+        <xpath expr="//span[@t-field='line.price_unit']" position="replace">
+            <span t-if="o.type == 'in_invoice'" t-esc="'%.4f' % line.price_unit"/>
+            <span t-if="o.type != 'in_invoice'" t-field="line.price_unit"/>
         </xpath>
-        <xpath expr="//tr/td/span[@t-field='l.discount']" position="replace">
-            <span t-if="o.type == 'in_invoice'" t-esc="'%.4f' % l.discount"/>
-            <span t-if="o.type != 'in_invoice'" t-field="l.discount"/>
+        <xpath expr="//span[@t-field='line.discount']" position="replace">
+            <span t-if="o.type == 'in_invoice'" t-esc="'%.4f' % line.discount"/>
+            <span t-if="o.type != 'in_invoice'" t-field="line.discount"/>
         </xpath>
-        <xpath expr="//tr/td/span[@t-field='l.price_subtotal']" position="replace">
-            <span t-if="o.type == 'in_invoice'" t-esc="'%.4f' % l.price_subtotal"/>
-            <span t-if="o.type != 'in_invoice'" t-field="l.price_subtotal"/>
+        <xpath expr="//span[@t-field='line.price_subtotal']" position="replace">
+            <span t-if="o.type == 'in_invoice'" t-esc="'%.4f' % line.price_subtotal"/>
+            <span t-if="o.type != 'in_invoice'" t-field="line.price_subtotal"/>
         </xpath>
         <xpath expr="//div[@id='total']/div/table/tr/td[2]" position="replace">
             <td t-if="o.type == 'in_invoice'" class="text-right">

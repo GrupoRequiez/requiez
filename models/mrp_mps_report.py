@@ -47,7 +47,7 @@ class MrpMpsReport(models.TransientModel):
         indirect = self.get_indirect(product)[product.id]
         display = _('To Supply / Produce')
         buy_type = self.env.ref(
-            'purchase.route_warehouse0_buy', raise_if_not_found=False)
+            'purchase_stock.route_warehouse0_buy', raise_if_not_found=False)
         mo_type = self.env.ref(
             'mrp.route_warehouse0_manufacture', raise_if_not_found=False)
         lead_time = 0
@@ -65,12 +65,12 @@ class MrpMpsReport(models.TransientModel):
         }
         date = date_dict.get(self.period, lambda d: d)(date)
         mrp_mps_locations = MrpMpsLocation.search([])
-        loc_ids = []
+        location_ids = []
         list_location = []
         len_location = len(mrp_mps_locations)
         cont = 1
         for mrp_mps_location in mrp_mps_locations:
-            loc_ids.append(mrp_mps_location.location_id.id)
+            location_ids.append(mrp_mps_location.location_id.id)
             tuple_location = ('location_id', 'child_of',
                               mrp_mps_location.location_id.id)
             if cont < len_location:
@@ -78,15 +78,13 @@ class MrpMpsReport(models.TransientModel):
             list_location.append(tuple_location)
             cont += 1
 
-        # *****************************
         initial = 0.0
         stock_quats_ids = self.env['stock.quant'].search(
-            [('product_id', '=', product.id), ('quantity', '>', 0.0), ('location_id', 'in', (loc_ids))])
+            [('product_id', '=', product.id), ('quantity', '>', 0.0), ('location_id', 'in', (location_ids))])
 
         initial += sum([c.quantity for c in stock_quats_ids])
-        # *****************************
 
-        #initial = product.qty_available
+        # initial = product.qty_available
         # Compute others cells
 
         # Better perfomance
@@ -135,8 +133,9 @@ class MrpMpsReport(models.TransientModel):
                 state = 'done' if fore.state == 'done' else 'draft'
                 demand += (fore.forecast_qty if fore.mode == 'auto' else 0)
             proc_dec = state == 'done'
-            indirect_total = sum([qty for day, qty in indirect.items() if date.strftime(
-                '%Y-%m-%d') <= day < date_to.strftime('%Y-%m-%d')])
+
+            indirect_total = sum([qty for day, qty in indirect.items(
+            ) if date <= datetime.datetime.combine(day, datetime.datetime.min.time()) < date_to])
             to_supply = (product.mps_forecasted -
                          initial + demand + indirect_total)
             to_supply = max(to_supply, product.mps_min_supply)
@@ -177,9 +176,9 @@ class MrpMpsReport(models.TransientModel):
                 # stock_move_outs = StockMove.search(domain2)
                 date_to_str = date_to.strftime('%Y-%m-%d')
                 date_str = date.strftime('%Y-%m-%d')
-                stock_move_outs = stock_move_outs_full.filtered(lambda r: r.raw_material_production_id.sale_id.date_promised >= date_str
+                stock_move_outs = stock_move_outs_full.filtered(lambda r: r.raw_material_production_id.sale_id.date_promised >= date
                                                                 and
-                                                                r.raw_material_production_id.sale_id.date_promised < date_to_str)
+                                                                r.raw_material_production_id.sale_id.date_promised < date_to)
                 for move_out in stock_move_outs:
                     product_out += move_out.product_uom_qty
                     product_out_compromise = ProductCompromise.search([

@@ -80,7 +80,7 @@ class ProductLabelMrp(models.AbstractModel):
         WHERE
             mp.id = %s
         """
-        self.env.cr.execute(query, tuple([mrp_id]))
+        self.env.cr.execute(query, tuple([mrp_id.id]))
         result = self.env.cr.fetchone()
         data = {}
         if result:
@@ -93,15 +93,14 @@ class ProductLabelMrp(models.AbstractModel):
         return data
 
     @api.multi
-    def get_report_values(self, docids, data=None):
-        report = self.env['ir.actions.report']._get_report_from_name(
-            'requiez.print_prod_label_mrp')
-        docs = docids
+    def _get_report_values(self, docids, data=None):
+        report = self.env['ir.actions.report']._get_report_from_name('requiez.print_prod_label_mrp')
+        docs = self.env[report.model].browse(docids)
         return {
             'get_data': self.get_data,
             'decimal_format': self.decimal_format,
-            'doc_ids': docids,
+            'doc_ids': docs.ids,
             'doc_model': report.model,
             'data': data,
-            'docs': docs
+            'docs': docs,
         }
