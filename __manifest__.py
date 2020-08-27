@@ -35,7 +35,7 @@
         "l10n_mx_edi_external_trade",
         "l10n_mx_edi_payment",
         "l10n_mx_edi_landing",
-        "l10n_mx_edi_vendor_bills",
+        # "l10n_mx_edi_vendor_bills",
         # "l10n_mx_import_taxes",
         "l10n_mx_reports",
         "maintenance",
