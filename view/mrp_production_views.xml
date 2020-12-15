@@ -9,7 +9,7 @@
         <attribute name="attrs">{'readonly': False}</attribute>
       </xpath>
       <xpath expr="//field[@name='origin']" position="after">
-        <field name="order_classification" attrs="{'invisible':[('origin','like','RA/')], 'readonly':[('state','in',('done','cancel'))]}"/>
+        <field name="order_classification" attrs="{'invisible':[('partner_id','=',False)], 'readonly':[('state','in',('done','cancel'))]}"/>
       </xpath>
     </field>
   </record>
