@@ -9,3 +9,4 @@ from . import procurement
 from . import stock
 from . import stock_location
 from . import mrp_mps_report
+from . import mrp_production
