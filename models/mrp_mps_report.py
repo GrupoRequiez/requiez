@@ -21,19 +21,132 @@
 ###############################################################################
 
 import datetime
-import babel.dates
 from dateutil import relativedelta
-from datetime import date
+import babel.dates
+import pytz
 
-from odoo import api, models, _, fields
+from odoo import api, fields, models, _
+from odoo.tools.misc import DEFAULT_SERVER_DATETIME_FORMAT
+
 
 NUMBER_OF_COLS = 12
 
 
 class MrpMpsReport(models.TransientModel):
-    _inherit = 'mrp.mps.report'
+    _name = 'mrp.mps.report'
+    _description = 'MPS Report'
 
-    @api.multi
+    def _default_manufacturing_period(self):
+        return self.env.user.company_id.manufacturing_period
+
+    company_id = fields.Many2one('res.company', string="Company",
+                                 default=lambda self: self.env['res.company']._company_default_get('mrp.mps.report'), required=True)
+    period = fields.Selection([('month', 'Monthly'), ('week', 'Weekly'), (
+        'day', 'Daily')], default=_default_manufacturing_period, string="Period")
+    # TODO: this object should not be used as wizard and as report
+    product_id = fields.Many2one('product.product', string='Product')
+
+    def add_product_mps(self):
+        MrpBomLine = self.env['mrp.bom.line']
+        for mps in self:
+            mps.product_id.write({
+                'mps_active': True,
+                'apply_active': self.env['mrp.bom']._bom_find(product=mps.product_id, company_id=mps.company_id.id) and True or False})
+            # If you add a difference account
+            boms = MrpBomLine.search(
+                [('product_id', '=', mps.product_id.id)]).mapped('bom_id')
+            for bom in boms:
+                products = (bom.product_id or (
+                    bom.product_tmpl_id.product_variant_ids)).filtered(lambda x: x.mps_active)
+                if products:
+                    products.apply_active = True
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload',
+        }
+
+    @api.model
+    def get_indirect(self, product, date=False, date_to=False):
+        domain = [('product_id', '=', product.id)]
+        data = self.env['sale.forecast.indirect'].search(domain)
+        result = {product.id: {}}
+        for d in data:
+            result.setdefault(d.product_id.id, {})
+            result[d.product_id.id].setdefault(d.date, 0.0)
+            result[d.product_id.id][d.date] += d.quantity
+        return result
+
+    @api.model
+    def _set_indirect(self, product, data):
+        self.env['sale.forecast.indirect'].search(
+            [('product_origin_id', '=', product.id)]).unlink()
+        BoM = self.env['mrp.bom']
+        #products_to_calculate = [(product, datas),]
+
+        products_to_calculate = {product: []}
+        for inner_data in data:
+            products_to_calculate[product].append({'lead': 0.0,
+                                                   'qty': inner_data['to_supply'],
+                                                   'date': fields.Date.from_string(inner_data['date']),
+                                                   })
+        original_product = product
+        while products_to_calculate:
+            (product, product_lines) = products_to_calculate.popitem()
+            # TODO: how is it possible not to find a BoM here?
+            bom = BoM._bom_find(product=product)
+            if not bom:
+                break
+            # TODO: Take into account security days on company level
+            product_qty = bom.product_uom_id._compute_quantity(
+                bom.product_qty, product.uom_id)
+            explored_boms, explored_lines = bom.explode(
+                product, 1.0 / product_qty)
+            for bom_line, line_data in explored_lines:
+
+                # If the product is in the report, add it to the objects of the report immediately,
+                # else search further and add to products_to_calculate if you find something
+                if bom_line.product_id.mps_active:
+                    for supply_line in product_lines:
+                        lead = product.produce_delay + supply_line['lead']
+                        qty = bom_line.product_uom_id._compute_quantity(
+                            line_data['qty'], bom_line.product_id.uom_id)
+                        self.env['sale.forecast.indirect'].create({
+                            'product_origin_id': original_product.id,
+                            'product_id': bom_line.product_id.id,
+                            'quantity': qty * supply_line['qty'],
+                            'date': supply_line['date'] - relativedelta.relativedelta(days=product.produce_delay)
+                            # The date the product is needed (don't calculate its own lead time)
+                        })
+                    if BoM._bom_find(product=bom_line.product_id):
+                        bom_line.product_id.apply_active = True
+                else:
+                    # If there is a child BoM, add them to the dictionary
+                    bom = BoM._bom_find(product=bom_line.product_id)
+                    if bom:
+                        products_to_calculate.setdefault(
+                            bom_line.product_id, [])
+                        qty = bom_line.product_uom_id._compute_quantity(
+                            line_data['qty'], bom_line.product_id.uom_id)
+                        for supply_line in product_lines:
+                            lead = supply_line['lead'] + \
+                                bom_line.product_id.produce_delay
+                            products_to_calculate[bom_line.product_id].append({
+                                'lead': lead,
+                                'qty': qty * supply_line['qty'],
+                                'date': supply_line['date'] - relativedelta.relativedelta(days=product.produce_delay),
+                            })
+        return True
+
+    @api.model
+    def update_indirect(self, product):
+        forcast = self.search([])[0]
+        if isinstance(product, int):
+            product = self.env['product.product'].browse(product)
+        product.apply_active = False
+        datas = forcast.get_data(product)
+        self._set_indirect(product, datas)
+        return True
+
     def get_data(self, product):
         """Getting data considering the quantity available"""
         # pylint: disable=C0103
@@ -247,6 +360,24 @@ class MrpMpsReport(models.TransientModel):
             })
             initial = forecasted
             date = date_to
+        return result
+
+    @api.model
+    def get_html(self, domain=[]):
+        res = self.search([], limit=1)
+        if not res:
+            res = self.create({})
+        domain.append(['mps_active', '=', True])
+        rcontext = {
+            'products': [(x, res.get_data(x)) for x in self.env['product.product'].search(domain, limit=20)],
+            'nb_periods': NUMBER_OF_COLS,
+            'company': self.env.user.company_id,
+            'format_float': self.env['ir.qweb.field.float'].value_to_html,
+        }
+        result = {
+            'html': self.env.ref('requiez.report_inventory').render(rcontext),
+            'report_context': {'nb_periods': NUMBER_OF_COLS, 'period': res.period},
+        }
         return result
 
 

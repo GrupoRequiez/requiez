@@ -6,6 +6,7 @@ from odoo import api, models
 
 class ProcurementGroup(models.Model):
     _inherit = 'procurement.group'
+    _name = 'procurement.group'
 
     @api.model
     def run_scheduler(self, use_new_cursor=False, company_id=False):

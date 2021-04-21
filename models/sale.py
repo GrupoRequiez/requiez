@@ -9,12 +9,12 @@ _logger = logging.getLogger(__name__)
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
+    _name = 'sale.order'
 
     user_id = fields.Many2one(default=None, required=True)
     client_order_ref = fields.Char(required=True, copy=True)
     date_promised = fields.Datetime()
 
-    @api.multi
     @api.onchange('partner_id')
     def onchange_partner_id(self):
         """If the partner does not have a salesman this field should be filled
@@ -27,7 +27,6 @@ class SaleOrder(models.Model):
         self.update(values)
         return res
 
-    @api.multi
     def action_confirm(self):
         payment_term_credits = (
             [payment
@@ -54,7 +53,6 @@ class SaleOrder(models.Model):
                       "FOR MORE INFORMATION CHECK INVOICING!"))
         super(SaleOrder, self).action_confirm()
 
-    @api.multi
     @api.onchange('expected_date')
     def onchange_partner_shipping_id(self):
         # self.date_promised = self.commitment_date
@@ -66,7 +64,6 @@ class SaleOrder(models.Model):
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
-    @api.multi
     def _prepare_procurement_values(self, group_id=False):
         vals = super(SaleOrderLine, self)._prepare_procurement_values(group_id)
         vals['date_planned'] = self.order_id.date_promised
