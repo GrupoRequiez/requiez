@@ -13,7 +13,7 @@ class SaleOrder(models.Model):
 
     user_id = fields.Many2one(default=None, required=True)
     client_order_ref = fields.Char(required=True, copy=True)
-    date_promised = fields.Datetime()
+    date_promised = fields.Datetime('Date promised', required=True)
 
     @api.onchange('partner_id')
     def onchange_partner_id(self):
