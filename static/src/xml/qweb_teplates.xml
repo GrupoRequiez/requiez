@@ -67,8 +67,6 @@
             <t t-foreach="productionSchedule.forecast_ids" t-as="forecast">
                 <th class="text-right pr-4">
                     <span t-attf-class="{{! groups.mrp_mps_show_available_to_promise and 'o_hidden' or ''}}" t-esc="formatFloat(forecast.starting_inventory_qty + forecast.incoming_product - forecast.product_compromise_qty - forecast.product_reserve_qty - forecast.replenish_qty - forecast.outgoing_qty, false, {'digits': [false, productionSchedule.precision_digits]})"/>
-                    <!-- <span t-attf-class="{{! (groups.mrp_mps_show_safety_stock and groups.mrp_mps_show_available_to_promise) and 'o_hidden' or ''}}">/</span>
-                    <span t-attf-class="{{forecast.safety_stock_qty &lt; 0 and 'text-danger' or ''}} {{! groups.mrp_mps_show_safety_stock and 'o_hidden' or ''}}" t-esc="formatFloat(forecast.safety_stock_qty, false, {'digits': [false, productionSchedule.precision_digits]})"/> -->
                 </th>
             </t>
         </tr>
@@ -77,12 +75,6 @@
 
 
       <t t-jquery="button[title*='Replenish']" t-operation="replace"/>
-      <t t-jquery="tr[name*='safety_stock']" t-operation="after">
-        <th style="background-color:#37C180"/>
-        <t t-foreach="productionSchedule.forecast_ids" t-as="forecast">
-            <th style="background-color:#37C180"/>
-        </t>
-      </t>
 
   </t>
 
