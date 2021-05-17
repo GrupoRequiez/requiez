@@ -6,8 +6,8 @@
     <field name="model">account.move</field>
     <field name="inherit_id" ref="account.view_move_form"/>
     <field name="arch" type="xml">
-      <xpath expr="//field[@name='invoice_date_due']" position="after">
-        <field name="date_payment"/>
+      <xpath expr="//field[@name='invoice_date']" position="after">
+        <field name="date_payment" attrs="{'invisible': [('move_type', '!=', 'in_invoice')]}"/>
       </xpath>
     </field>
   </record>
@@ -15,10 +15,11 @@
   <record id="invoice_supplier_payment_date_tree" model="ir.ui.view">
     <field name="name">invoice.supplier.payment.date.tree</field>
     <field name="model">account.move</field>
-    <field name="inherit_id" ref="account.view_move_tree"/>
+    <field name="inherit_id" ref="account.view_in_invoice_tree"/>
     <field name="arch" type="xml">
       <xpath expr="//field[@name='state']" position="before">
-        <field name="date_payment"/>
+        <field name="move_type" invisible="True"/>
+        <field name="date_payment" attrs="{'invisible': [('move_type', '!=', 'in_invoice')]}"/>
       </xpath>
     </field>
   </record>
@@ -28,8 +29,8 @@
     <field name="model">account.move</field>
     <field name="inherit_id" ref="account.view_move_form"/>
     <field name="arch" type="xml">
-      <xpath expr="//field[@name='date']" position="after">
-        <field name="prioritized"/>
+      <xpath expr="//div[@name='journal_div']" position="after">
+        <field name="prioritized" attrs="{'invisible': [('move_type', '!=', 'in_invoice')]}"/>
       </xpath>
     </field>
   </record>
