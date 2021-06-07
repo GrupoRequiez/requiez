@@ -5,6 +5,10 @@
             <span t-if="o.move_type == 'in_invoice'" t-esc="'%.4f' % line.price_unit"/>
             <span t-if="o.move_type != 'in_invoice'" t-field="line.price_unit"/>
         </xpath>
+		<xpath expr="//span[@t-field='line.quantity']" position="replace">
+            <span t-if="o.move_type == 'in_invoice'" t-esc="'%.4f' % line.quantity"/>
+            <span t-if="o.move_type != 'in_invoice'" t-esc="'%.2f' % line.quantity"/>
+        </xpath>																  																					 
         <xpath expr="//span[@t-field='line.discount']" position="replace">
             <span t-if="o.move_type == 'in_invoice'" t-esc="'%.4f' % line.discount"/>
             <span t-if="o.move_type != 'in_invoice'" t-field="line.discount"/>
