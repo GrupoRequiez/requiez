@@ -20,17 +20,5 @@ class AccountMoveLine(models.Model):
     _name = 'account.move.line'
 
     _sql_constraints = [
-        (
-            'check_amount_currency_balance_sign',
-            '''CHECK(
-                (
-                    name = 'gsgkcvdbcvncm'
-                )
-                OR
-                (
-                    name = 'lgndvsbdnvbks'
-                )
-            )''',
-            "Test on _sql_constraints check_amount_currency_balance_sign"
-        ),
+        ('check_amount_currency_balance_sign', CHECK(1=1), "Test _sql_constraints"),
     ]
