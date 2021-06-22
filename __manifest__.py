@@ -112,7 +112,7 @@
     "qweb": [
         "static/src/xml/qweb_teplates.xml",
     ],
-    "pre_init_hook": "pre_init_hook",
+    # "pre_init_hook": "pre_init_hook",
     "auto_install": False,
     "application": True,
     "installable": True,
