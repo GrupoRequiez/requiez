@@ -7,7 +7,7 @@
     "website": "https://requiez.com",
     "license": "LGPL-3",
     "category": "requiez",
-    "version": "1.0.1",
+    "version": "14.0.1.0.1",
     "depends": [
         "account_asset",
         "account_budget",
